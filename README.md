@@ -25,3 +25,9 @@ catkin config -j $(nproc --ignore=2)
 catkin build -cs --mem-limit 50%
 source devel/setup.bash
 ```
+Create the virtual environment and install the requirements
+cd src/
+python3 -m venv gsmini_venv
+source gsmini_venv/bin/activate
+cd gelsightmini_ros_bundle/
+pip install -r requirements.txt
