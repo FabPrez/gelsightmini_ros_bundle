@@ -27,7 +27,7 @@ source devel/setup.bash
 ```
 Create the virtual environment and install the requirements:
 ```bash
-cd src/
+cd src/gelsightmini_ros_bundle/
 python3 -m venv gsmini_venv
 source gsmini_venv/bin/activate
 cd gelsightmini_ros_bundle/
