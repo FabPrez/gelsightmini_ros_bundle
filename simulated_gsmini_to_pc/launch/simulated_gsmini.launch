@@ -1,0 +1,5 @@
+<launch>
+    <arg name="venv" value="$(find simulated_gsmini_to_pc)/../gsmini_venv/bin/python" />
+    <node pkg="simulated_gsmini_to_pc" type="main.py" name="gelsight_node" launch-prefix="$(arg venv)" output="screen">
+    </node>
+</launch>
