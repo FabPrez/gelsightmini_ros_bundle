@@ -33,3 +33,7 @@ source gsmini_venv/bin/activate
 cd gelsightmini_ros_bundle/
 pip install -r requirements.txt
 ```
+### Other dependecies
+```bash
+sudo apt-get install ros-noetic-cv-bridge
+```
