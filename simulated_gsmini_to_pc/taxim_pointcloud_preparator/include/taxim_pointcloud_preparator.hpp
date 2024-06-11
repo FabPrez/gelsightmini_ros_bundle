@@ -33,21 +33,31 @@ public:
 	void spinner(void);
 
 private:
+	bool enable_debug;
 	ros::NodeHandle nh;
 	ros::Subscriber sub_obj_pointclod;
+
 	ros::ServiceServer service_save_pointcloud;
 
+	PointCloud::Ptr cloud_object{new PointCloud()};
 	ros::Publisher object_pub;
-	sensor_msgs::PointCloud2 cloud_msg_object_modified;
+	std::string cloud_object_frame_id;
+
+	ros::Publisher firstFinger_pub;
+	ros::Publisher secondFinger_pub;
+	sensor_msgs::PointCloud2 firstFinger_cloud_msg;
+	sensor_msgs::PointCloud2 secondFinger_cloud_msg;
 
 	tf2_ros::Buffer tf_buffer;
 	tf2_ros::TransformListener tf_listener;
-	PointCloud::Ptr cloud_object{new PointCloud()};
-	std::string cloud_object_frame_id;
 
 	void pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr &input);
 	bool trasformAndSavePointCloud(taxim_pointcloud_preparator::SavePointcloud::Request &req,
 								   taxim_pointcloud_preparator::SavePointcloud::Response &res);
+
+	void saveAsPcd(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+	bool generateTwoFingerContact(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+	void saveAsPly(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::string fingerNumber);
 };
 
 #endif // TAXIM_POINTCLOUD_PREPARATOR_HPP

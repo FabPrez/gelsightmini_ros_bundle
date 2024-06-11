@@ -1,0 +1,12 @@
+<launch>
+    <arg name="obj_name" default="Simple_Pin" />
+
+    <arg name="taxim_obj_ply_path" value="$(find data_folder)/taxim_obj_ply/$(arg obj_name)_firstFinger.ply" />
+
+    <arg name="venv" value="$(find simulate_two_fingers_tactile)/../../gsmini_venv/bin/python" />
+    <!-- Passa l'argomento obj_path allo script main.py come parametro ROS -->
+    <node pkg="simulate_two_fingers_tactile" type="main.py" name="simulate_two_fingers_tactile" launch-prefix="$(arg venv)" output="screen">
+        <param name="taxim_obj_ply_path" value="$(arg taxim_obj_ply_path)" />
+    </node>
+    
+</launch>
