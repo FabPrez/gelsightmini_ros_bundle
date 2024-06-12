@@ -103,6 +103,10 @@ The tactile images are published on the following topics:
 - `/second_finger_simulated_image`
 
 ![Simulated tactile iamges](data_folder/simulated_tactile_images.png)
+#### TODO: extract info about posiition of sensor when touching the object
+#### TODO: impose the penetration as a parameter and not as 2 mm as the actual code
+
+
 
 
 
