@@ -92,7 +92,7 @@ This ROS interface for Taxim allows for obtaining tactile images from a PLY obje
 
 These commands will simulate a single or dual contact, respectively. Note that the second sensor in the dual contact simulation is not visualized in RViz.
 
-![Simulator Screen](path/to/your/image.png)
+![Simulator Screen](data_folder/simulator_screen.png)
 
 #### Moving the Object
 To move the object, use the dynamic reconfigure interface as shown in the provided screenshot. This interface allows you to adjust the position and orientation of the sensor and the object.
@@ -102,7 +102,7 @@ The tactile images are published on the following topics:
 - `/first_finger_simulated_image`
 - `/second_finger_simulated_image`
 
-![Simulated tactile iamges](image.png)
+![Simulated tactile iamges](data_folder/simulated_tactile_images.png)
 
 
 
