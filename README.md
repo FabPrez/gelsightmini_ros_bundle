@@ -6,9 +6,9 @@ This repository contains all the necessary ROS packages and dependencies to inte
 
 ## Included Packages
 - **Gelsight SDK**: Forked and modified version of the Gelsight SDK for processing tactile images.
-  - [Gelsight SDK Repository](https://github.com/YourUsername/Gelsight-SDK)
+  - [Gelsight SDK Repository](https://github.com/FabPrez/Gelsight-SDK)
 - **Taxim**: Forked and modified version of the Taxim simulator for generating synthetic tactile data.
-  - [Taxim Repository](https://github.com/YourUsername/Taxim)
+  - [Taxim Repository](https://github.com/FabPrez/Taxim)
 
 > Note: The packages required for the project will be automatically installed following the steps outlined in the Setting up your environment section. Direct modifications or pushes to packages other than gelsightmini_ros_bundle should be avoided.
 
