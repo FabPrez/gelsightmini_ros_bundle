@@ -1,23 +1,35 @@
 #include "../include/interactive_object_controller.hpp"
 
-InteractiveObjectController::InteractiveObjectController(ros::NodeHandle &nh) : tf_listener(tf_buffer)
+InteractiveObjectController::InteractiveObjectController(ros::NodeHandle &nh)
 {
   this->nh = nh;
   nh.getParam("/interactive_object_controller_node/enable_debug", enable_debug);
   ROS_INFO("Enable debug: %s", enable_debug ? "true" : "false");
+  nh.getParam("/interactive_object_controller_node/single_contact", single_contact);
+  ROS_INFO("Single contact: %s", single_contact ? "true" : "false");
 
+  // Publishers
   object_pub = nh.advertise<sensor_msgs::PointCloud2>("/object_pc", 1);
   sensor_pub = nh.advertise<sensor_msgs::PointCloud2>("/sensor", 1);
-  taximPointcloud_pub = nh.advertise<sensor_msgs::PointCloud2>("/object_contact_pointcloud", 1);
-  save_pointcloud_client = nh.serviceClient<taxim_pointcloud_preparator::SavePointcloud>("save_pointcloud");
+  pub_firstFingerContact = nh.advertise<sensor_msgs::PointCloud2>("/first_finger_contact_pointcloud", 1);
 
+  // Pointclouds initialization
   cloud_object = boost::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
   cloud_sensor = boost::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
-  cloud_taximPointcloud = boost::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
+  cloud_firstFingerTaximPointcloud = boost::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
+
+  cloud_secondFingerTaximPointcloud = boost::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
+  pub_secondFIngerContact = nh.advertise<sensor_msgs::PointCloud2>("/second_finger_contact_pointcloud", 1);
 
   loadObjectPly();
-  initObjTransform();
+  pcl::toROSMsg(*cloud_object, cloud_msg_object);
   loadSensorPly();
+  pcl::toROSMsg(*cloud_sensor, cloud_msg_sensor);
+
+  cloud_msg_object.header.frame_id = "frame_object";
+  cloud_msg_sensor.header.frame_id = "frame_sensor";
+
+  initTransform();
 
   // Dynamic reconfigure stuff
   f_ = boost::bind(&InteractiveObjectController::configCallback, this, _1, _2);
@@ -28,6 +40,8 @@ void InteractiveObjectController::loadObjectPly()
 {
   // Load object .PLY and publish it
   static tf2_ros::StaticTransformBroadcaster static_broadcaster;
+
+  // load the object from the folder "data_folder", take a look on the launch file to see it!
   std::string obj_ply_path;
   nh.getParam("/interactive_object_controller_node/obj_ply_path", obj_ply_path);
   if (enable_debug)
@@ -41,19 +55,14 @@ void InteractiveObjectController::loadObjectPly()
 
   if (enable_debug)
     ROS_INFO("PLY object uploaded!");
-
-  pcl::toROSMsg(*cloud_object, cloud_msg_object);
-  cloud_msg_object.header.frame_id = "frame_object";
-
-  // obj_transform();
 }
 
 void InteractiveObjectController::loadSensorPly()
 {
-  // Load Sensor .PLY and publish it
+  // Load Sensor .PLY
   std::string sensor_ply_path;
   std::string data_folder_path = ros::package::getPath("data_folder"); // Nome del pacchetto
-  std::string relative_path = "obj_ply/gsmini_pointcloud.ply";         // Percorso relativo all'interno del pacchetto
+  std::string relative_path = "obj_ply/gsmini_pointcloud.ply";
   std::string sensor_file_path = data_folder_path + "/" + relative_path;
   if (enable_debug)
     ROS_INFO("Sensor .ply path: %s", sensor_file_path.c_str());
@@ -66,49 +75,39 @@ void InteractiveObjectController::loadSensorPly()
 
   if (enable_debug)
     ROS_INFO("PLY sensor file uploaded!");
-  pcl::toROSMsg(*cloud_sensor, cloud_msg_sensor);
-  cloud_msg_sensor.header.frame_id = "frame_sensor";
-
-  sensor_trasform();
 }
 
-void InteractiveObjectController::initObjTransform()
+void InteractiveObjectController::initTransform()
 {
+  tf2_ros::StaticTransformBroadcaster static_broadcaster;
+  // Send static object reference frame
   transformStamped_object.header.frame_id = "world";
   transformStamped_object.child_frame_id = "frame_object";
-  cloud_msg_taximPointcloud.header.frame_id = "frame_object";
 
-  // Imposta la traslazione (posizione)
   transformStamped_object.transform.translation.x = 0;
   transformStamped_object.transform.translation.y = 0;
   transformStamped_object.transform.translation.z = 0;
 
-  // Imposta la rotazione (orientazione)
   transformStamped_object.transform.rotation.x = 0.0;
   transformStamped_object.transform.rotation.y = 0.0;
   transformStamped_object.transform.rotation.z = 0.0;
-  transformStamped_object.transform.rotation.w = 1.0; // No rotation
-}
+  transformStamped_object.transform.rotation.w = 1.0;
 
-void InteractiveObjectController::sensor_trasform()
-{
-  static tf2_ros::StaticTransformBroadcaster static_broadcaster;
+  transformStamped_object.header.stamp = ros::Time::now();
+  static_broadcaster.sendTransform(transformStamped_object);
 
-  // Imposta l'header del messaggio TF
-  transformStamped_sensor.header.stamp = ros::Time::now();
-  transformStamped_sensor.header.frame_id = "world";       // Frame di riferimento
-  transformStamped_sensor.child_frame_id = "frame_sensor"; // Frame del tuo oggetto
+  // Send static sensor reference frame
+  transformStamped_sensor.header.frame_id = "world";
+  transformStamped_sensor.child_frame_id = "frame_sensor";
 
-  // Imposta la traslazione (posizione)
   transformStamped_sensor.transform.translation.x = 0.0;
   transformStamped_sensor.transform.translation.y = 0.0;
   transformStamped_sensor.transform.translation.z = 0.0;
 
-  // Imposta la rotazione (orientazione)
   transformStamped_sensor.transform.rotation.x = 0.0;
   transformStamped_sensor.transform.rotation.y = 0.0;
   transformStamped_sensor.transform.rotation.z = 0.0;
-  transformStamped_sensor.transform.rotation.w = 1.0; // Nessuna rotazione
+  transformStamped_sensor.transform.rotation.w = 1.0;
 
   transformStamped_sensor.header.stamp = ros::Time::now();
   static_broadcaster.sendTransform(transformStamped_sensor);
@@ -116,6 +115,7 @@ void InteractiveObjectController::sensor_trasform()
 
 void InteractiveObjectController::configCallback(interactive_object_controller::object_controllerConfig &config, uint32_t level)
 {
+  // Dynamic reconfigure callback - update the object position every time the parameters are changed
   static tf2_ros::StaticTransformBroadcaster static_broadcaster;
 
   transformStamped_object.transform.translation.x = config.translation_x;
@@ -133,55 +133,46 @@ void InteractiveObjectController::configCallback(interactive_object_controller::
   transformStamped_object.header.stamp = ros::Time::now();
   static_broadcaster.sendTransform(transformStamped_object);
 
-  // Call service to save the pcl
-  // TODO
   trasformPcForTaxim();
-  // taxim_pointcloud_preparator::SavePointcloud srv;
-  // if (save_pointcloud_client.call(srv))
-  // {
-  //   ROS_INFO("SavePointcloud success: %d", srv.response.success);
-  // }
-  // else
-  // {
-  //   ROS_ERROR("Failed to call service save_pointcloud");
-  // }
-
-  // Call service to let the gelsight simulator publish the relative image
-  // TODO
 }
 
 void InteractiveObjectController::trasformPcForTaxim(void)
 {
-  geometry_msgs::TransformStamped transform;
-  transform = transformStamped_object;
-  std::string world_frame_id = "world";
+  //  --- This function takes the actual pointcloud, transform it to process the right contact part and publish it
+  // the messages are used from the package "taxim_pointcloud_simulator" ---
 
-  // try
-  // {
-  //   transform = tf_buffer.lookupTransform(world_frame_id, cloud_msg_object.header.frame_id, ros::Time(0));
-  // }
-  // catch (tf2::TransformException &ex)
-  // {
-  //   ROS_ERROR("%s", ex.what());
-  //   return;
-  // }
+  // ! the trasformation is done based on the 0,0,0 reference frame, so the Sensor must be in that position!
 
   Eigen::Matrix4f eigen_transform;
-  pcl_ros::transformAsMatrix(transform.transform, eigen_transform);
+  pcl_ros::transformAsMatrix(transformStamped_object.transform, eigen_transform);
+  pcl::transformPointCloud(*cloud_object, *cloud_firstFingerTaximPointcloud, eigen_transform);
 
-  pcl::transformPointCloud(*cloud_object, *cloud_taximPointcloud, eigen_transform);
+  // Eigen::Matrix4f rotation_matrix = Eigen::Matrix4f::Identity();
+  // rotation_matrix(2, 2) = -1;
+  // rotation_matrix(0, 0) = -1;
+  // pcl::transformPointCloud(*cloud_firstFingerTaximPointcloud, *cloud_firstFingerTaximPointcloud, rotation_matrix);
+  // pcl::transformPointCloud(*cloud_firstFingerTaximPointcloud, *cloud_firstFingerTaximPointcloud, Eigen::Affine3f(Eigen::Translation3f(0, 0, 500)));
+  pcl::toROSMsg(*cloud_firstFingerTaximPointcloud, cloud_msg_firstFingerTaximPointcloud);
+  cloud_msg_firstFingerTaximPointcloud.header.frame_id = "frame_object";
+  pub_firstFingerContact.publish(cloud_msg_firstFingerTaximPointcloud);
 
-  pcl::toROSMsg(*cloud_taximPointcloud, cloud_msg_taximPointcloud);
-  
-  taximPointcloud_pub.publish(cloud_msg_taximPointcloud);
-  ROS_INFO("object_contact_pointcloud generated!");
+  // if (!single_contact) return;
+
+  // // --- Second finger contact pointcloud ---
+  // Eigen::Matrix4f rotation_matrix = Eigen::Matrix4f::Identity();
+  // rotation_matrix(2, 2) = -1;
+  // rotation_matrix(0, 0) = -1;
+
+  // // Let's apply the rotation matrix to the first finger pointcloud
+  // pcl::transformPointCloud(*cloud_firstFingerTaximPointcloud, *cloud_secondFingerTaximPointcloud, rotation_matrix);
+  // pcl::toROSMsg(*cloud_secondFingerTaximPointcloud, cloud_msg_secondFingerTaximPointcloud);
+  // cloud_msg_secondFingerTaximPointcloud.header.frame_id = "frame_object";
+  // pub_secondFIngerContact.publish(cloud_msg_secondFingerTaximPointcloud);
 }
 
 void InteractiveObjectController::spinner()
 {
-  // obj_transform();
   object_pub.publish(cloud_msg_object);
-  // sensor_trasform();
   sensor_pub.publish(cloud_msg_sensor);
 }
 

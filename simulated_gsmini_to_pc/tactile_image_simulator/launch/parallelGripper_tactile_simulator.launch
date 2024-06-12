@@ -1,0 +1,28 @@
+<launch>
+    <arg name="enable_debug" default="false" />
+    
+    <arg name="obj_name" default="Simple_Pin" />
+    <arg name="single_contact" default="false" />
+    
+    <arg name="obj_ply_path" value="$(find data_folder)/obj_ply/$(arg obj_name).ply" />
+    <arg name="taxim_obj_ply_path" value="$(find data_folder)/taxim_obj_ply/$(arg obj_name).ply" />
+    <arg name="obj_pcd_path" value="$(find data_folder)/obj_pcd/$(arg obj_name).pcd" />
+
+    <node pkg="interactive_object_controller" name="interactive_object_controller_node" type="interactive_object_controller" output="screen">
+        <param name="enable_debug" type="bool" value="$(arg enable_debug)" />
+        <param name="obj_ply_path" value="$(arg obj_ply_path)" />
+        <param name="obj_name" value="$(arg obj_name)" />
+        <param name="single_contact" value="$(arg single_contact)" />
+    </node>
+
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find tactile_image_simulator)/config/ParallelGripper_tactile_simulator.rviz"/>
+    <node pkg="rqt_reconfigure" type="rqt_reconfigure" name="rqt_reconfigure" output="screen"/>
+
+    <!-- Definisci l'argomento venv con il percorso al virtual environment -->
+    <arg name="venv" value="$(find tactile_image_simulator)/../../gsmini_venv/bin/python" />
+    
+    <node pkg="tactile_image_simulator" type="main.py" name="tactile_image_simulator" launch-prefix="$(arg venv)" output="screen">
+        <param name="taxim_obj_ply_path" value="$(arg taxim_obj_ply_path)" />
+        <param name="single_contact" value="$(arg single_contact)" />
+    </node>
+</launch>

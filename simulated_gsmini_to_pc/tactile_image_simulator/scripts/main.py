@@ -27,9 +27,9 @@ class SimulatorNode:
         rospy.init_node('tactile_image_simulator_node')
         self.verts_num = 0
         self.vertices = None
-        self.pc_subscriber = rospy.Subscriber('/object_contact_pointcloud', PointCloud2, self.pc_callback)
+        self.pc_subscriber = rospy.Subscriber('/first_finger_contact_pointcloud', PointCloud2, self.pc_callback)
         # self.simulate_serv = rospy.Service('simulated_gsmini', SimulatedGSmini, self.handle_simulated_gsmini)
-        self.image_publisher = rospy.Publisher('/simulated_image', Image, queue_size=10)
+        self.image_publisher = rospy.Publisher('/first_finger_simulated_image', Image, queue_size=10)
         self.bridge = CvBridge()
         
     def pc_callback(self, msg):
@@ -58,8 +58,6 @@ class SimulatorNode:
 
         # Pubblica il messaggio sul topic
         self.image_publisher.publish(image_msg)
-
-        rospy.loginfo("Simulated image published on /simulated_image topic")
 
     def spin(self):
         rospy.spin()
