@@ -19,7 +19,7 @@ InteractiveObjectController::InteractiveObjectController(ros::NodeHandle &nh)
   cloud_firstFingerTaximPointcloud = boost::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
 
   cloud_secondFingerTaximPointcloud = boost::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
-  pub_secondFIngerContact = nh.advertise<sensor_msgs::PointCloud2>("/second_finger_contact_pointcloud", 1);
+  pub_secondFingerContact = nh.advertise<sensor_msgs::PointCloud2>("/second_finger_contact_pointcloud", 1);
 
   loadObjectPly();
   pcl::toROSMsg(*cloud_object, cloud_msg_object);
@@ -133,41 +133,40 @@ void InteractiveObjectController::configCallback(interactive_object_controller::
   transformStamped_object.header.stamp = ros::Time::now();
   static_broadcaster.sendTransform(transformStamped_object);
 
-  trasformPcForTaxim();
+  transformPcForTaxim();
 }
 
-void InteractiveObjectController::trasformPcForTaxim(void)
+void InteractiveObjectController::transformPcForTaxim(void)
 {
   //  --- This function takes the actual pointcloud, transform it to process the right contact part and publish it
-  // the messages are used from the package "taxim_pointcloud_simulator" ---
+  // the messages are used from the package "tactile_image_simulator" ---
 
   // ! the trasformation is done based on the 0,0,0 reference frame, so the Sensor must be in that position!
 
+  // The simulator takes the highest point in teh pointcloud, so the first trasformation is suitable for the second finger
+  // not fot the sensor displayed in Rviz but it is supposed to compute the image from the opposite z-side
   Eigen::Matrix4f eigen_transform;
   pcl_ros::transformAsMatrix(transformStamped_object.transform, eigen_transform);
-  pcl::transformPointCloud(*cloud_object, *cloud_firstFingerTaximPointcloud, eigen_transform);
+  pcl::transformPointCloud(*cloud_object, *cloud_secondFingerTaximPointcloud, eigen_transform);
+  pcl::toROSMsg(*cloud_secondFingerTaximPointcloud, cloud_msg_secondFingerTaximPointcloud);
+  cloud_msg_secondFingerTaximPointcloud.header.frame_id = "frame_object";
+  pub_secondFingerContact.publish(cloud_msg_secondFingerTaximPointcloud);
 
-  // Eigen::Matrix4f rotation_matrix = Eigen::Matrix4f::Identity();
-  // rotation_matrix(2, 2) = -1;
-  // rotation_matrix(0, 0) = -1;
-  // pcl::transformPointCloud(*cloud_firstFingerTaximPointcloud, *cloud_firstFingerTaximPointcloud, rotation_matrix);
-  // pcl::transformPointCloud(*cloud_firstFingerTaximPointcloud, *cloud_firstFingerTaximPointcloud, Eigen::Affine3f(Eigen::Translation3f(0, 0, 500)));
+  // For the first finger (the sensor displayed in Rviz) the pointcloud has also to be rotated of 180° around the z-axis
+  Eigen::Matrix4f rotation_matrix = Eigen::Matrix4f::Identity();
+  rotation_matrix(2, 2) = -1;
+  rotation_matrix(0, 0) = -1;
+  pcl::transformPointCloud(*cloud_secondFingerTaximPointcloud, *cloud_firstFingerTaximPointcloud, rotation_matrix);
+  // Correct the x displacement by inverting it back
+  for (auto &point : cloud_firstFingerTaximPointcloud->points)
+  {
+    point.x = -point.x;
+  }
+  // I need to translate it in the z-direction to have all positive points
+  pcl::transformPointCloud(*cloud_firstFingerTaximPointcloud, *cloud_firstFingerTaximPointcloud, Eigen::Affine3f(Eigen::Translation3f(0, 0, 10000)));
   pcl::toROSMsg(*cloud_firstFingerTaximPointcloud, cloud_msg_firstFingerTaximPointcloud);
   cloud_msg_firstFingerTaximPointcloud.header.frame_id = "frame_object";
   pub_firstFingerContact.publish(cloud_msg_firstFingerTaximPointcloud);
-
-  // if (!single_contact) return;
-
-  // // --- Second finger contact pointcloud ---
-  // Eigen::Matrix4f rotation_matrix = Eigen::Matrix4f::Identity();
-  // rotation_matrix(2, 2) = -1;
-  // rotation_matrix(0, 0) = -1;
-
-  // // Let's apply the rotation matrix to the first finger pointcloud
-  // pcl::transformPointCloud(*cloud_firstFingerTaximPointcloud, *cloud_secondFingerTaximPointcloud, rotation_matrix);
-  // pcl::toROSMsg(*cloud_secondFingerTaximPointcloud, cloud_msg_secondFingerTaximPointcloud);
-  // cloud_msg_secondFingerTaximPointcloud.header.frame_id = "frame_object";
-  // pub_secondFIngerContact.publish(cloud_msg_secondFingerTaximPointcloud);
 }
 
 void InteractiveObjectController::spinner()

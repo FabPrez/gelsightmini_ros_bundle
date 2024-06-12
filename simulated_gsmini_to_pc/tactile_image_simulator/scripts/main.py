@@ -27,37 +27,54 @@ class SimulatorNode:
         rospy.init_node('tactile_image_simulator_node')
         self.verts_num = 0
         self.vertices = None
-        self.pc_subscriber = rospy.Subscriber('/first_finger_contact_pointcloud', PointCloud2, self.pc_callback)
-        # self.simulate_serv = rospy.Service('simulated_gsmini', SimulatedGSmini, self.handle_simulated_gsmini)
-        self.image_publisher = rospy.Publisher('/first_finger_simulated_image', Image, queue_size=10)
+        self.sub_firstFinger = rospy.Subscriber('/first_finger_contact_pointcloud', PointCloud2, self.pc_firstFingercallback)
+        self.pub_firstFinger = rospy.Publisher('/first_finger_simulated_image', Image, queue_size=10)
+        self.sub_secondFinger = rospy.Subscriber('/second_finger_contact_pointcloud', PointCloud2, self.pc_secondFingercallback)
+        self.pub_secondFinger = rospy.Publisher('/second_finger_simulated_image', Image, queue_size=10)
         self.bridge = CvBridge()
+        self.gsminiSimulator = gsmini_simulator()
         
-    def pc_callback(self, msg):
-        # Convert PointCloud2 message to a numpy array
+    def pc_firstFingercallback(self, msg):
         points_list = []
 
         for point in pc2.read_points(msg, skip_nans=True):
             points_list.append([point[0], point[1], point[2]])
 
         self.vertices = np.array(points_list)
-        self.verts_num = len(self.vertices)
-        gsminiSimulator = gsmini_simulator(self.vertices)
-        sim_img, shadow_sim_img, heightMap = gsminiSimulator.generateSimulatedImages(2,0,0)
-        
-        # Converti l'immagine in un tipo supportato se necessario
-        # Se l'immagine è a colori (3 canali), assicura l'encoding corretto
+        self.gsminiSimulator.vertices = self.vertices
+        sim_img, shadow_sim_img, heightMap = self.gsminiSimulator.generateSimulatedImages(2,0,0)
+    
         if sim_img.ndim == 3 and sim_img.shape[2] == 3:
             if sim_img.dtype != np.uint8:
                 sim_img = cv2.normalize(sim_img, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
             image_msg = self.bridge.cv2_to_imgmsg(sim_img, encoding="bgr8")
         else:
-            # Converti l'immagine in un tipo supportato se necessario
             if sim_img.dtype != np.uint8:
                 sim_img = cv2.normalize(sim_img, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
             image_msg = self.bridge.cv2_to_imgmsg(sim_img, encoding="mono8")
 
-        # Pubblica il messaggio sul topic
-        self.image_publisher.publish(image_msg)
+        self.pub_firstFinger.publish(image_msg)
+        
+    def pc_secondFingercallback(self, msg):
+        points_list = []
+
+        for point in pc2.read_points(msg, skip_nans=True):
+            points_list.append([point[0], point[1], point[2]])
+
+        self.vertices = np.array(points_list)
+        self.gsminiSimulator.vertices = self.vertices
+        sim_img, shadow_sim_img, heightMap = self.gsminiSimulator.generateSimulatedImages(2,0,0)
+    
+        if sim_img.ndim == 3 and sim_img.shape[2] == 3:
+            if sim_img.dtype != np.uint8:
+                sim_img = cv2.normalize(sim_img, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
+            image_msg = self.bridge.cv2_to_imgmsg(sim_img, encoding="bgr8")
+        else:
+            if sim_img.dtype != np.uint8:
+                sim_img = cv2.normalize(sim_img, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
+            image_msg = self.bridge.cv2_to_imgmsg(sim_img, encoding="mono8")
+
+        self.pub_secondFinger.publish(image_msg)
 
     def spin(self):
         rospy.spin()

@@ -46,7 +46,7 @@ private:
 	sensor_msgs::PointCloud2 cloud_msg_object;
 	geometry_msgs::TransformStamped transformStamped_object;
 	void loadObjectPly(void);
-	void trasformPcForTaxim(void);
+	void transformPcForTaxim(void);
 
 	// Sensor stuff
 	ros::Publisher sensor_pub;
@@ -61,7 +61,7 @@ private:
 	ros::Publisher pub_firstFingerContact;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_firstFingerTaximPointcloud;
 	sensor_msgs::PointCloud2 cloud_msg_firstFingerTaximPointcloud;
-	ros::Publisher pub_secondFIngerContact;
+	ros::Publisher pub_secondFingerContact;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_secondFingerTaximPointcloud;
 	sensor_msgs::PointCloud2 cloud_msg_secondFingerTaximPointcloud;
 
