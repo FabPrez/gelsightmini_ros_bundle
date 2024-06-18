@@ -101,11 +101,19 @@ To move the object, use the dynamic reconfigure interface as shown in the provid
 The tactile images are published on the following topics:
 - `/first_finger_simulated_image`
 - `/second_finger_simulated_image`
+  
 
 ![Simulated tactile iamges](data_folder/simulated_tactile_images.png)
 #### TODO: extract info about posiition of sensor when touching the object
 #### TODO: impose the penetration as a parameter and not as 2 mm as the actual code
 
+## ⚠️ Important Note
+
+<div style="background-color: #f8d7da; padding: 10px; border-radius: 5px;">
+  <strong>IMPORTANT NOTE:</strong> DO NOT RUN OR LAUNCH INSIDE THE VENV!
+</div>
+
+**⚠️ Please read this important note before using the project.**
 
 
 
