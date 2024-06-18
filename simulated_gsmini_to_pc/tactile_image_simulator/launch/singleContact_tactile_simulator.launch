@@ -25,4 +25,5 @@
         <param name="taxim_obj_ply_path" value="$(arg taxim_obj_ply_path)" />
         <param name="single_contact" value="$(arg single_contact)" />
     </node>
+
 </launch>

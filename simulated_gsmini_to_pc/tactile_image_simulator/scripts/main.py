@@ -1,4 +1,4 @@
-#!/home/fabioprez/gsmini_ws/src/gelsightmini_ros_bundle/gsmini_venv/bin/python
+#!/home/fabprez/gsmini_ws/src/gelsightmini_ros_bundle/gsmini_venv/bin/python
 
 import os
 import sys

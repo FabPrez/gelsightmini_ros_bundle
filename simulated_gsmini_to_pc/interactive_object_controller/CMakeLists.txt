@@ -11,7 +11,6 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_ros
   pcl_conversions
   dynamic_reconfigure
-  taxim_pointcloud_preparator
 )
 
 generate_dynamic_reconfigure_options(
