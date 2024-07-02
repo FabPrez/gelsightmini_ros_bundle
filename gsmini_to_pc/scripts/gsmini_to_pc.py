@@ -89,8 +89,13 @@ class Gsmini_to_pc:
         
         if self.IS_SIMULATED:
             self.sub_image = rospy.Subscriber(image_topic, Image, self.image_to_pc_callback)
-            image_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'sfondo.png'))
-            self.simulated_background = cv2.imread(image_path)
+            rospack = rospkg.RosPack()
+            
+            data_folder_path = rospack.get_path('data_folder')
+            background_path = os.path.join(data_folder_path,'simulated_backgroud','background.png')  
+            rospy.loginfo("****background_path: " + background_path)
+            
+            self.simulated_background = cv2.imread(background_path)
         else:
             self.f0 = self.dev.get_raw_image()
         print('press q on image to exit')
