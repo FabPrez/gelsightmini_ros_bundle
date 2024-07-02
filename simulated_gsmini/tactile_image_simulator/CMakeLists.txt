@@ -15,7 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 add_service_files(
   FILES
-  SimulatedGSmini.srv
+  SimulateBackground.srv
 )
 
 generate_messages(

@@ -3,12 +3,14 @@
 InteractiveObjectController::InteractiveObjectController(ros::NodeHandle &nh)
 {
   this->nh = nh;
-  nh.getParam("/interactive_object_controller_node/enable_debug", enable_debug);
+  private_nh = ros::NodeHandle("~");
+  
+  private_nh.getParam("enable_debug", enable_debug);
   ROS_INFO("Enable debug: %s", enable_debug ? "true" : "false");
-  nh.getParam("/interactive_object_controller_node/single_contact", single_contact);
+  private_nh.getParam("single_contact", single_contact);
   ROS_INFO("Single contact: %s", single_contact ? "true" : "false");
 
-  // Publishers
+  // Standard Publishers
   object_pub = nh.advertise<sensor_msgs::PointCloud2>("/object_pc", 1);
   sensor_pub = nh.advertise<sensor_msgs::PointCloud2>("/sensor", 1);
   pub_firstFingerContact = nh.advertise<sensor_msgs::PointCloud2>("/first_finger_contact_pointcloud", 1);
@@ -43,7 +45,7 @@ void InteractiveObjectController::loadObjectPly()
 
   // load the object from the folder "data_folder", take a look on the launch file to see it!
   std::string obj_ply_path;
-  nh.getParam("/interactive_object_controller_node/obj_ply_path", obj_ply_path);
+  private_nh.getParam("obj_ply_path", obj_ply_path);
   if (enable_debug)
     ROS_INFO("Obj .ply path: %s", obj_ply_path.c_str());
 

@@ -39,6 +39,7 @@ private:
 	bool enable_debug;
 	bool single_contact;
 	ros::NodeHandle nh;
+	ros::NodeHandle private_nh;
 
 	// Object stuff
 	ros::Publisher object_pub;
