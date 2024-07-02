@@ -33,7 +33,7 @@ gelsightmini_ros_bundle/
 │
 ├── gelsightmini_venv/           # Virtual environment for dependencies
 │
-├── gelsightmini_to_pc/          # Code to convert real Gelsight images to point clouds
+├── gsmini_to_pc/                # Code to convert real Gelsight images to point clouds
 │
 ├── data_folder/                 # Contains data used for simulation and processing
 │
@@ -93,7 +93,11 @@ sudo apt-get install ros-noetic-cv-bridge
 
 ## Usage
 
-### Simulated_gmini
+With this package, you can:
+
+### Simulate Tactile Images with Simulated_gmini
+
+This package uses the Taxim simulator to render images and provides a ROS-based interface to intuitively move the object to obtain contact. In particular:
 
 This ROS interface for Taxim allows for obtaining tactile images from a PLY object file positioned in the `data_folder` directory. Specify the object name when launching the package with `obj_name`:
 
@@ -109,8 +113,6 @@ This ROS interface for Taxim allows for obtaining tactile images from a PLY obje
     roslaunch tactile_image_simulator parallelGripper_tactile_simulator.launch obj_name:=Simple_Pin
     ```
 
-These commands will simulate a single or dual contact, respectively. Note that the second sensor in the dual contact simulation is not visualized in RViz.
-
 ![Simulator Screen](data_folder/simulator_screen.png)
 
 #### Moving the Object
@@ -119,17 +121,37 @@ To move the object, use the dynamic reconfigure interface as shown in the provid
 
 #### Output Data
 
-The tactile images are published on the following topics:
-
+The package is designed to manage multiple sensors. Simply specify the topic on which you want to publish. In the launch files mentioned above, by default, it publishes to:
 - `/first_finger_simulated_image`
 - `/second_finger_simulated_image`
 
-![Simulated tactile images](data_folder/simulated_tactile_images.png)
+### Generate Point Clouds from Tactile Images
 
-#### TODO:
+You can generate point clouds from tactile images (real or simulated) using the `gsmini_to_pc` package, which interfaces with the Gelsight SDK. By choosing the topic from which the tactile image originates and specifying whether it is simulated or not via the launch parameters, you can manage this for different sensors.
 
-- Extract info about the position of the sensor when touching the object.
-- Impose the penetration as a parameter and not as 2 mm as in the actual code.
+There are two launch files that interface with Simulated_gmini:
+
+- **Single Finger Simulation to Point Cloud**:
+
+    ```sh
+    roslaunch gsmini_to_pc simulate_1fing_gsmini_to_pc.launch
+    ```
+
+- **Dual Finger Simulation to Point Cloud**:
+
+    ```sh
+    roslaunch gsmini_to_pc simulate_2fing_gsmini_to_pc.launch
+    ```
+
+### Custom Launch
+
+In general, if you want to launch `gsmini` with custom parameters, you can:
+
+```sh
+roslaunch gsmini_to_pc gsmini_to_pc.launch image_topic:=/new_image_topic pointcloud_image_topic:=/new_pointcloud_topic is_simulated:=false
+```
+
+---
 
 ## ⚠️ Important Note
 
@@ -140,10 +162,3 @@ The tactile images are published on the following topics:
 **⚠️ Please read this important note before using the project.**
 
 ---
-
-## Simulated_gmini Detailed Analysis
-
-The `simulated_gmini` directory contains two main packages:
-
-1. **tactile_image_simulator**: This package converts point clouds to tactile images. When launching the node, you can specify the input and output topics.
-2. **interactive_object_controller**: This package serves as an interface for simulating single or dual contact with a parallel gripper using an object that moves in RViz.
