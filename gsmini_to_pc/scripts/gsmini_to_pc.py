@@ -2,8 +2,9 @@ import sys
 import numpy as np
 import cv2
 import os
+import threading
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'..','..','..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..')))
 
 import open3d
 import copy
@@ -17,25 +18,21 @@ import std_msgs.msg
 import sensor_msgs.point_cloud2 as pcl2
 import rospkg
 
-def get_diff_img(img1, img2):
-    return np.clip((img1.astype(int) - img2.astype(int)), 0, 255).astype(np.uint8)
-
-
-def get_diff_img_2(img1, img2):
-    return (img1 * 1.0 - img2) / 255. + 0.5
-
 class Gsmini_to_pc:
     def __init__(self):
         rospy.init_node('gmini_to_pc', anonymous=True)
         
-        image_topic = rospy.get_param('~image_topic',"/null_image") #input topic
-        pointcloud_image_topic = rospy.get_param('~pointcloud_image_topic',"/gsmini_pcd") #output topic
+        image_topic = rospy.get_param('~image_topic', "/null_image") #input topic
+        pointcloud_image_topic = rospy.get_param('~pointcloud_image_topic', "/gsmini_pcd") #output topic
         is_simulated = rospy.get_param('~is_simulated')
         
         if is_simulated:
             rospy.loginfo("Ready to convert SIMULATED images to pointclud!")
         else:
             rospy.loginfo("Ready to convert REAL images to pointclud!")
+        
+        rospy.loginfo("Subscribing to: " + image_topic)
+        rospy.loginfo("Publishing to: " + pointcloud_image_topic)
         
         # Set flags
         self.SAVE_VIDEO_FLAG = False
@@ -51,12 +48,10 @@ class Gsmini_to_pc:
         # This is meters per pixel that is used for ros visualization
         self.mpp = self.mmpp / 1000.
         
-        # the device ID can change after chaning the usb ports.
+        # the device ID can change after changing the usb ports.
         # on linux run, v4l2-ctl --list-devices, in the terminal to get the device ID for camera
         self.dev = gsdevice.Camera("GelSight Mini")
-        net_file_path = os.path.abspath(os.path.join(os.path.dirname(__file__),'..','nnmini.pt')) 
-        print('----net_file_path path is: ', net_file_path)
-        # net_file_path = '../nnmini.pt'
+        net_file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'nnmini.pt')) 
 
         self.bridge = CvBridge()
         self.dev.connect()
@@ -88,12 +83,13 @@ class Gsmini_to_pc:
         self.gelpcd_pub = rospy.Publisher(pointcloud_image_topic, PointCloud2, queue_size=10)
             
         ''' use this to plot just the 3d '''
+        self.current_dm = None
         if self.SHOW_3D_NOW:
             self.vis3d = gs3drecon.Visualize3D(self.dev.imgh, self.dev.imgw, '', self.mmpp)
         
         if self.IS_SIMULATED:
             self.sub_image = rospy.Subscriber(image_topic, Image, self.image_to_pc_callback)
-            image_path = os.path.abspath(os.path.join(os.path.dirname(__file__),'sfondo.png'))
+            image_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'sfondo.png'))
             self.simulated_background = cv2.imread(image_path)
         else:
             self.f0 = self.dev.get_raw_image()
@@ -106,7 +102,6 @@ class Gsmini_to_pc:
         self.process_pointcloud()
 
     def process_pointcloud(self):
-        rospy.loginfo("counter is: %d", self.counter) 
         if not self.IS_SIMULATED:
             self.f1 = self.dev.get_image()
         else:
@@ -117,7 +112,6 @@ class Gsmini_to_pc:
             else:
                 self.background_settled = True
                 
-        rospy.loginfo("I'm here!")
         bigframe = cv2.resize(self.f1, (self.f1.shape[1] * 2, self.f1.shape[0] * 2))
         # compute the depth map
         dm = self.nn.get_depthmap(self.f1, self.MASK_MARKERS_FLAG)
@@ -132,10 +126,15 @@ class Gsmini_to_pc:
         gelpcdros = pcl2.create_cloud_xyz32(header, np.asarray(self.gelpcd.points))
         self.gelpcd_pub.publish(gelpcdros)
         
-        ''' Display the results '''
-        if self.SHOW_3D_NOW:
-            self.vis3d.update(dm)
-        rospy.loginfo('Point cloud published!')
+        ''' Store depth map for visualization '''
+        self.current_dm = dm
+
+    def run_visualization(self):
+        rate = rospy.Rate(30)  # 30 Hz
+        while not rospy.is_shutdown():
+            if self.current_dm is not None:
+                self.vis3d.update(self.current_dm)
+            rate.sleep()
         
     def spinner(self):
         rate = rospy.Rate(60)
@@ -148,10 +147,13 @@ class Gsmini_to_pc:
             while not rospy.is_shutdown():
                 self.process_pointcloud()
                 rate.sleep()
-        # while not rospy.is_shutdown():
-        #     self.process_pointcloud()
-        #     rate.sleep()
 
 if __name__ == "__main__":
     gsmini_to_pc = Gsmini_to_pc()
-    gsmini_to_pc.spinner()
+    
+    # Create a separate thread for ROS spinner
+    ros_thread = threading.Thread(target=gsmini_to_pc.spinner)
+    ros_thread.start()
+    
+    # Run visualization in the main thread
+    gsmini_to_pc.run_visualization()
