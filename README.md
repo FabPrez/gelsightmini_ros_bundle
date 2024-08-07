@@ -91,10 +91,14 @@ sudo apt-get install ros-noetic-cv-bridge
 
 ---
 
-## Usage
+## HowTo
 
-With this package, you can:
+### Real tactile images
+Obtain tactile images as for the gelsgith-sdk package, generating the respective pointcloud:
 
+```bash
+    roslaunch gsmini_to_pc gsmini_to_pc.launch image_topic:=/new_image_topic pointcloud_image_topic:=/new_pointcloud_topic is_simulated:="False"
+```
 ### Simulate Tactile Images with Simulated_gmini
 
 This package uses the Taxim simulator to render images and provides a ROS-based interface to intuitively move the object to obtain contact. In particular:
