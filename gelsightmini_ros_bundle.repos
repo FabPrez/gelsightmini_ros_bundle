@@ -2,6 +2,6 @@ repositories:
   Taxim:
     type: git
     url: https://github.com/FabPrez/Taxim.git
-  gelSight-SDK:
+  gelSight_SDK:
     type: git
     url: https://github.com/FabPrez/gelSight-SDK.git
