@@ -22,8 +22,8 @@ class Gsmini_to_pc:
     def __init__(self):
         rospy.init_node('gmini_to_pc', anonymous=True)
         
-        image_topic = rospy.get_param('~image_topic', "/null_image") #input topic
-        pointcloud_image_topic = rospy.get_param('~pointcloud_image_topic', "/gsmini_pcd") #output topic
+        input_image_topic = rospy.get_param('~input_image_topic', "/null_image") #input topic
+        output_topic = rospy.get_param('~output_topic', "/gsmini_pcd") #output topic
         is_simulated = rospy.get_param('~is_simulated')
         
         if is_simulated:
@@ -31,8 +31,8 @@ class Gsmini_to_pc:
         else:
             rospy.loginfo("Ready to convert REAL images to pointclud!")
         
-        rospy.loginfo("Subscribing to: " + image_topic)
-        rospy.loginfo("Publishing to: " + pointcloud_image_topic)
+        rospy.loginfo("Subscribing to: " + input_image_topic)
+        rospy.loginfo("Publishing to: " + output_topic)
         
         # Set flags
         self.SAVE_VIDEO_FLAG = False
@@ -80,7 +80,7 @@ class Gsmini_to_pc:
         self.points[:, 2] = np.ndarray.flatten(Z)
         self.gelpcd = open3d.geometry.PointCloud()
         self.gelpcd.points = open3d.utility.Vector3dVector(self.points)
-        self.gelpcd_pub = rospy.Publisher(pointcloud_image_topic, PointCloud2, queue_size=10)
+        self.gelpcd_pub = rospy.Publisher(output_topic, PointCloud2, queue_size=10)
             
         ''' use this to plot just the 3d '''
         self.current_dm = None
@@ -88,7 +88,7 @@ class Gsmini_to_pc:
             self.vis3d = gs3drecon.Visualize3D(self.dev.imgh, self.dev.imgw, '', self.mmpp)
         
         if self.IS_SIMULATED:
-            self.sub_image = rospy.Subscriber(image_topic, Image, self.image_to_pc_callback)
+            self.sub_image = rospy.Subscriber(input_image_topic, Image, self.image_to_pc_callback)
             rospack = rospkg.RosPack()
             
             data_folder_path = rospack.get_path('data_folder')
@@ -129,6 +129,7 @@ class Gsmini_to_pc:
         self.points[:, 2] = np.ndarray.flatten(dm_ros)
         self.gelpcd.points = open3d.utility.Vector3dVector(self.points)
         gelpcdros = pcl2.create_cloud_xyz32(header, np.asarray(self.gelpcd.points))
+        # rospy.loginfo("the number of points of the pointclsoud is: " + str(len(gelpcdros.data)))
         self.gelpcd_pub.publish(gelpcdros)
         rospy.loginfo("Pointcloud publihsed!")
         

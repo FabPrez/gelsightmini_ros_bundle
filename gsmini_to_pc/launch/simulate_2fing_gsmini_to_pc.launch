@@ -11,9 +11,9 @@
     
     <group ns="first_finger">
         <node pkg="gsmini_to_pc" type="gsmini_to_pc.py" name="gsmini_to_pc_first_finger" launch-prefix="$(arg venv)" output="screen">
-            <param name="image_topic" value="/first_finger_simulated_image"/>
+            <param name="input_image_topic" value="/first_finger_simulated_image"/>
             <param name="is_simulated" value="$(arg is_simulated)"/>
-            <param name="pointcloud_image_topic" value="/first_finger_simulated_pointcloud"/>
+            <param name="output_topic" value="/first_finger_simulated_pointcloud"/>
         </node>
 
         <node pkg="rviz" type="rviz" name="rviz_gsmini_to_pc_first_finger" args="-d $(find gsmini_to_pc)/config/mini_ros_3d_config.rviz"/>  
@@ -21,9 +21,9 @@
     
     <group ns="second_finger">
         <node pkg="gsmini_to_pc" type="gsmini_to_pc.py" name="gsmini_to_pc_second_finger" launch-prefix="$(arg venv)" output="screen">
-            <param name="image_topic" value="/second_finger_simulated_image"/>
-            <param name="pointcloud_image_topic" value="/second_finger_simulated_pointcloud"/>
+            <param name="input_image_topic" value="/second_finger_simulated_image"/>
             <param name="is_simulated" value="$(arg is_simulated)"/>
+            <param name="output_topic" value="/second_finger_simulated_pointcloud"/>
         </node>
 
         <node pkg="rviz" type="rviz" name="rviz_gsmini_to_pc_second_finger" args="-d $(find gsmini_to_pc)/config/mini_ros_3d_config.rviz"/>  

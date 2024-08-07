@@ -11,7 +11,7 @@
 
     <group ns="first_finger">
         <node pkg="gsmini_to_pc" type="gsmini_to_pc.py" name="gsmini_to_pc_first_finger" launch-prefix="$(arg venv)" output="screen">
-            <param name="image_topic" value="/first_finger_simulated_image"/>
+            <param name="input_image_topic" value="/first_finger_simulated_image"/>
             <param name="is_simulated" value="$(arg is_simulated)"/>
         </node>
 

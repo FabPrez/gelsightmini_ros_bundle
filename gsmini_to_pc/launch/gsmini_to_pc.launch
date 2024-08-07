@@ -1,14 +1,15 @@
 <launch>
     <arg name="venv" value="$(find tactile_image_simulator)/../../gsmini_venv/bin/python" />
     <arg name="is_simulated" default="true"/>
-    <arg name="image_topic" default="/first_finger_simulated_image"/>
-    <arg name="pointcloud_image_topic" default="/default_pointcloud_topic"/>
+    <arg name="input_image_topic" default="/first_finger_simulated_image"/>
+    <arg name="output_topic" default="/first_finger_simulated_pointcloud"/>
+    <arg name="rviz" default="true"/>
 
     <node pkg="gsmini_to_pc" type="gsmini_to_pc.py" name="gsmini_to_pc_first_finger" launch-prefix="$(arg venv)" output="screen">
-        <param name="image_topic" value="$(arg image_topic)"/>
+        <param name="input_image_topic" value="$(arg input_image_topic)"/>
         <param name="is_simulated" value="$(arg is_simulated)"/>
-        <param name="pointcloud_image_topic" value="$(arg pointcloud_image_topic)"/>
+        <param name="output_topic" value="$(arg output_topic)"/>
     </node>
-
-    <node pkg="rviz" type="rviz" name="rviz_gsmini_to_pc_first_finger" args="-d $(find gsmini_to_pc)/config/mini_ros_3d_config.rviz"/>  
+  
+    <node if="$(arg rviz)" pkg="rviz" type="rviz" name="rviz_gsmini_to_pc_first_finger" args="-d $(find gsmini_to_pc)/config/mini_ros_3d_config.rviz"/>  
 </launch>
