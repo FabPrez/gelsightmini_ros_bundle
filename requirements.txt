@@ -14,7 +14,7 @@ opencv-python>=4.8
 Pillow>=9.5.0
 pygrabber>=0.1
 pyusb>=1.2.1
-scikit_image>=0.18.3
+scikit_image==0.18.3
 scipy>=1.10.1
 setuptools>=45.2.0
 torch>=1.11.0
