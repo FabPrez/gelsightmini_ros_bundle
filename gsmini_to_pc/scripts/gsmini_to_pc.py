@@ -130,6 +130,7 @@ class Gsmini_to_pc:
         self.gelpcd.points = open3d.utility.Vector3dVector(self.points)
         gelpcdros = pcl2.create_cloud_xyz32(header, np.asarray(self.gelpcd.points))
         self.gelpcd_pub.publish(gelpcdros)
+        rospy.loginfo("Pointcloud publihsed!")
         
         ''' Store depth map for visualization '''
         self.current_dm = dm
