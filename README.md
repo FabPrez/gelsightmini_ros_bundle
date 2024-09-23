@@ -152,7 +152,7 @@ There are two launch files that interface with Simulated_gmini:
 In general, if you want to launch `gsmini` with custom parameters, you can:
 
 ```sh
-roslaunch gsmini_to_pc gsmini_to_pc.launch image_topic:=/new_image_topic pointcloud_image_topic:=/new_pointcloud_topic is_simulated:=false
+roslaunch gsmini_to_pc gsmini_to_pc.launch input_image_topic:=/new_image_topic output_topic:=/new_pointcloud_topic is_simulated:=false
 ```
 
 ---
