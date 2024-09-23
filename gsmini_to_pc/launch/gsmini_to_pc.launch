@@ -5,8 +5,9 @@
     <arg name="output_topic" default="/first_finger_simulated_pointcloud"/>
     <arg name="rviz" default="true"/>
     <arg name="output" default="screen"/>
+    <arg name="n_finger" default="first_finger"/>
 
-    <node pkg="gsmini_to_pc" type="gsmini_to_pc.py" name="gsmini_to_pc_first_finger" launch-prefix="$(arg venv)" output="$(arg output)">
+    <node pkg="gsmini_to_pc" type="gsmini_to_pc.py" name="gsmini_to_pc_$(arg n_finger)" launch-prefix="$(arg venv)" output="$(arg output)">
         <param name="input_image_topic" value="$(arg input_image_topic)"/>
         <param name="is_simulated" value="$(arg is_simulated)"/>
         <param name="output_topic" value="$(arg output_topic)"/>
