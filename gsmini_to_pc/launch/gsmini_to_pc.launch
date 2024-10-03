@@ -17,7 +17,6 @@
     <arg name="qw" default="1.0" />
     <arg name="reference_frame_name" default="world" />
 
-
     <node pkg="gsmini_to_pc" type="gsmini_to_pc.py" name="gsmini_to_pc_$(arg finger_name)" launch-prefix="$(arg venv)" output="$(arg output)">
         <param name="input_image_topic" value="$(arg input_image_topic)"/>
         <param name="is_simulated" value="$(arg is_simulated)"/>
