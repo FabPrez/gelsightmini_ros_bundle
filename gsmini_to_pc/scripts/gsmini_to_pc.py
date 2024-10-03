@@ -25,6 +25,8 @@ class Gsmini_to_pc:
         input_image_topic = rospy.get_param('~input_image_topic', "/null_image") #input topic
         output_topic = rospy.get_param('~output_topic', "/gsmini_pcd") #output topic
         is_simulated = rospy.get_param('~is_simulated')
+        finger_name = rospy.get_param('~finger_name', "finger1")
+        id_sensor = rospy.get_param('~id_sensor', "GelSight Mini R0B 2D2X-8MHY")
         
         if is_simulated:
             rospy.loginfo("Ready to convert SIMULATED images to pointclud!")
@@ -41,6 +43,9 @@ class Gsmini_to_pc:
         self.SHOW_3D_NOW = True
         self.IS_SIMULATED = is_simulated
         self.background_settled = False
+        rospy.loginfo("name of the finger: " + finger_name)
+        self.finger_name = str(finger_name)
+        self.id_sensor = str(id_sensor)
         
         # Set the camera resolution
         self.mmpp = 0.0634  # mini gel 18x24mm at 240x320
@@ -50,7 +55,7 @@ class Gsmini_to_pc:
         
         # the device ID can change after changing the usb ports.
         # on linux run, v4l2-ctl --list-devices, in the terminal to get the device ID for camera
-        self.dev = gsdevice.Camera("GelSight Mini")
+        self.dev = gsdevice.Camera(self.id_sensor)
         net_file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'nnmini.pt')) 
 
         self.bridge = CvBridge()
@@ -85,7 +90,7 @@ class Gsmini_to_pc:
         ''' use this to plot just the 3d '''
         self.current_dm = None
         if self.SHOW_3D_NOW:
-            self.vis3d = gs3drecon.Visualize3D(self.dev.imgh, self.dev.imgw, '', self.mmpp)
+            self.vis3d = gs3drecon.Visualize3D(self.dev.imgh, self.dev.imgw, '', self.mmpp, self.finger_name)
         
         if self.IS_SIMULATED:
             self.sub_image = rospy.Subscriber(input_image_topic, Image, self.image_to_pc_callback)
@@ -125,7 +130,7 @@ class Gsmini_to_pc:
         ''' publish point clouds '''
         header = std_msgs.msg.Header()
         header.stamp = rospy.Time.now()
-        header.frame_id = 'gs_mini'
+        header.frame_id = 'frame_'+ self.finger_name
         self.points[:, 2] = np.ndarray.flatten(dm_ros)
         self.gelpcd.points = open3d.utility.Vector3dVector(self.points)
         gelpcdros = pcl2.create_cloud_xyz32(header, np.asarray(self.gelpcd.points))
@@ -137,7 +142,7 @@ class Gsmini_to_pc:
         self.current_dm = dm
 
     def run_visualization(self):
-        rate = rospy.Rate(30)  # 30 Hz
+        rate = rospy.Rate(30) 
         while not rospy.is_shutdown():
             if self.current_dm is not None:
                 self.vis3d.update(self.current_dm)

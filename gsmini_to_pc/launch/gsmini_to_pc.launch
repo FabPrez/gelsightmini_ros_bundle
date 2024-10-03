@@ -5,13 +5,30 @@
     <arg name="output_topic" default="/first_finger_simulated_pointcloud"/>
     <arg name="rviz" default="true"/>
     <arg name="output" default="screen"/>
-    <arg name="n_finger" default="first_finger"/>
+    <arg name="finger_name" default="first_finger"/>
+    <arg name="id_sensor" default="GelSight Mini R0B 2D2X-8MHY"/>
 
-    <node pkg="gsmini_to_pc" type="gsmini_to_pc.py" name="gsmini_to_pc_$(arg n_finger)" launch-prefix="$(arg venv)" output="$(arg output)">
+    <arg name="x" default="0" />
+    <arg name="y" default="0" />
+    <arg name="z" default="0" />
+    <arg name="qx" default="0.0" />
+    <arg name="qy" default="0.0" />
+    <arg name="qz" default="0.0" />
+    <arg name="qw" default="1.0" />
+    <arg name="reference_frame_name" default="world" />
+
+
+    <node pkg="gsmini_to_pc" type="gsmini_to_pc.py" name="gsmini_to_pc_$(arg finger_name)" launch-prefix="$(arg venv)" output="$(arg output)">
         <param name="input_image_topic" value="$(arg input_image_topic)"/>
         <param name="is_simulated" value="$(arg is_simulated)"/>
         <param name="output_topic" value="$(arg output_topic)"/>
+        <param name="finger_name" value="$(arg finger_name)"/>
+        <param name="id_sensor" value="$(arg id_sensor)"/>
     </node>
+
+    <!-- Publishing the reference frame -->
+    <node pkg="tf" type="static_transform_publisher" name="frame_$(arg finger_name)"
+        args="$(arg x) $(arg y) $(arg z) $(arg qx) $(arg qy) $(arg qz) $(arg qw) $(arg reference_frame_name) frame_$(arg finger_name) 10" />
   
-    <node if="$(arg rviz)" pkg="rviz" type="rviz" name="rviz_gsmini_to_pc_first_finger" args="-d $(find gsmini_to_pc)/config/mini_ros_3d_config.rviz"/>  
+    <node if="$(arg rviz)" pkg="rviz" type="rviz" name="rviz_gsmini_finger$(arg finger_name)" args="-d $(find gsmini_to_pc)/config/mini_ros_3d_config.rviz"/>  
 </launch>
