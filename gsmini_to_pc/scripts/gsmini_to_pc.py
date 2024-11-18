@@ -43,7 +43,7 @@ class Gsmini_to_pc:
         self.SAVE_VIDEO_FLAG = False
         self.GPU = True
         self.MASK_MARKERS_FLAG = False
-        self.SHOW_3D_NOW = True
+        self.SHOW_3D_NOW = False
         self.IS_SIMULATED = is_simulated
         self.background_settled = False
         rospy.loginfo("name of the finger: " + finger_name)
@@ -138,21 +138,16 @@ class Gsmini_to_pc:
         self.publish_depthmap()
 
     def publish_depthmap(self):
-        """Pubblica la depth map senza normalizzazioni non necessarie."""
         dm = self.current_dm
 
-        # Usa gli stessi valori grezzi della visualizzazione
-        dm_image = (dm * 255 / np.max(dm)).astype(np.uint8)  # Normalizza solo per visualizzazione
-        depth_msg = self.bridge.cv2_to_imgmsg(dm_image, encoding="mono8")
+        # deptmap not normalized - usefull for contaxt detection
+        depth_msg = self.bridge.cv2_to_imgmsg(dm.astype(np.float32), encoding="32FC1")
 
-        # Pubblica
         self.depthmap_pub.publish(depth_msg)
-        
-        
         # rospy.loginfo("Depthmap published.")
        
     def publish_pointcloud_service(self, req):
-        # compute the depth map
+
         dm = self.nn.get_depthmap(self.f1, self.MASK_MARKERS_FLAG)
 
         dm_ros = copy.deepcopy(self.current_dm) * self.mpp
@@ -167,6 +162,20 @@ class Gsmini_to_pc:
         # rospy.loginfo("the number of points of the pointclsoud is: " + str(len(gelpcdros.data)))
         self.gelpcd_pub.publish(gelpcdros)
         return TriggerResponse(success=True, message="Point cloud published.")
+    
+    def publish_pointcloud(self):
+        dm = self.current_dm
+        dm_ros = copy.deepcopy(dm) * self.mpp
+        
+        ''' publish point clouds '''
+        header = std_msgs.msg.Header()
+        header.stamp = rospy.Time.now()
+        header.frame_id = 'frame_'+ self.finger_name
+        self.points[:, 2] = np.ndarray.flatten(dm_ros)
+        self.gelpcd.points = open3d.utility.Vector3dVector(self.points)
+        gelpcdros = pcl2.create_cloud_xyz32(header, np.asarray(self.gelpcd.points))
+        self.gelpcd_pub.publish(gelpcdros)
+        
 
     def run_visualization(self):
         rate = rospy.Rate(30) 
@@ -195,4 +204,5 @@ if __name__ == "__main__":
     ros_thread.start()
     
     # Run visualization in the main thread
-    gsmini_to_pc.run_visualization()
+    if gsmini_to_pc.SHOW_3D_NOW:
+        gsmini_to_pc.run_visualization()
