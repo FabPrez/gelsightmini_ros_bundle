@@ -1,6 +1,6 @@
 <launch>
     <arg name="venv" value="$(find tactile_image_simulator)/../../gsmini_venv/bin/python" />
-    <arg name="is_simulated" default="true"/>
+    <arg name="is_simulated" default="false"/>
     <arg name="input_simulated_image_topic" default="/first_finger_simulated_image"/>
     <arg name="output_pc_topic" default="/first_finger_simulated_pointcloud"/>
     <arg name="output_depthmap_topic" default="/first_finger_simulated_depthmap"/>
