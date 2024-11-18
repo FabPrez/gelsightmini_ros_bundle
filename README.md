@@ -93,12 +93,55 @@ sudo apt-get install ros-noetic-cv-bridge
 
 ## HowTo
 
-### Real tactile images
-Obtain tactile images as for the gelsgith-sdk package, generating the respective pointcloud:
+### Using the GelSight Mini Sensor with Real Hardware
+
+After connecting the GelSight Mini sensor to your PC, you can launch the following ROS command:
 
 ```bash
-    roslaunch gsmini_to_pc gsmini_to_pc.launch image_topic:=/new_image_topic pointcloud_image_topic:=/new_pointcloud_topic is_simulated:="False"
+roslaunch gsmini_to_pc gsmini_to_pc.launch
 ```
+
+#### Specifying Sensor Parameters
+
+If you have multiple sensors, you may need to specify the sensor's ID. For example, for my two sensors, I need to select between:
+
+- `GelSight Mini R0B 2D54-PYNT`
+- `GelSight Mini R0B 2D2X-8MHY`
+
+To specify the sensor ID, use the `id_sensor` parameter:
+
+```bash
+roslaunch gsmini_to_pc gsmini_to_pc.launch id_sensor:="GelSight Mini R0B 2D54-PYNT"
+```
+
+Additionally, you can assign a custom name to the sensor. This is particularly useful if you are using multiple sensors and want to recognize them more intuitively. Use the `finger_name` parameter to set the name:
+
+```bash
+roslaunch gsmini_to_pc gsmini_to_pc.launch finger_name:="Second Finger"
+```
+
+#### Depth Map Publishing
+
+The launched node will publish the depth map to the topic specified by the `output_depthmap_topic` parameter:
+
+```bash
+output_depthmap_topic:="/your_desired_topic"
+```
+
+#### Requesting the Point Cloud
+
+If you need the current point cloud from the sensor, you can request it via the provided ROS service:
+
+```bash
+rosservice call /publish_pointcloud
+```
+
+This service will publish the point cloud on the topic specified by the `output_pc_topic` parameter:
+
+```bash
+output_pc_topic:="/your_desired_pointcloud_topic"
+```
+
 ### Simulate Tactile Images with Simulated_gmini
 
 This package uses the Taxim simulator to render images and provides a ROS-based interface to intuitively move the object to obtain contact. In particular:
