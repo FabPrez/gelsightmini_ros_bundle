@@ -8,6 +8,7 @@
     <arg name="output" default="screen"/>
     <arg name="finger_name" default="first_finger"/>
     <arg name="id_sensor" default="GelSight Mini R0B 2D2X-8MHY"/>
+    <arg name="publish_sensor_tf" default="true"/>
 
     <arg name="x" default="0" />
     <arg name="y" default="0" />
@@ -28,8 +29,10 @@
     </node>
 
     <!-- Publishing the reference frame -->
-    <node pkg="tf" type="static_transform_publisher" name="frame_$(arg finger_name)"
-        args="$(arg x) $(arg y) $(arg z) $(arg qx) $(arg qy) $(arg qz) $(arg qw) $(arg reference_frame_name) frame_$(arg finger_name) 10" />
+    <group if="$(arg publish_sensor_tf)">
+        <node pkg="tf2_ros" type="static_transform_publisher" name="frame_$(arg finger_name)"
+            args="$(arg x) $(arg y) $(arg z) $(arg qx) $(arg qy) $(arg qz) $(arg qw) $(arg reference_frame_name) frame_$(arg finger_name)" />
+    </group>
   
     <node if="$(arg rviz)" pkg="rviz" type="rviz" name="rviz_gsmini_finger$(arg finger_name)" args="-d $(find gsmini_to_pc)/config/mini_ros_3d_config.rviz"/>  
 </launch>

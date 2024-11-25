@@ -69,7 +69,7 @@ class Gsmini_to_pc:
         self.depthmap_pub = rospy.Publisher(output_depthmap_topic, Image, queue_size=10)
         
         # ''' services '''
-        self.pc_service = rospy.Service('/publish_pointcloud', Trigger, self.publish_pointcloud_service)
+        self.pc_service = rospy.Service('/'+finger_name+'/publish_pointcloud', Trigger, self.publish_pointcloud_service)
         
         # ''' Load neural network '''
         model_file_path = '.'
