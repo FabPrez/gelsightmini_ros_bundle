@@ -135,6 +135,7 @@ If you need the current point cloud from the sensor, you can request it via the 
 ```bash
 rosservice call /publish_pointcloud
 ```
+*NOTE: the pointcloud and the depthmap have dimensions that do not cover the full sensor. If we measure the output pointcloud it will have: 15,15 mm and 20,22 mm*
 
 This service will publish the point cloud on the topic specified by the `output_pc_topic` parameter:
 
