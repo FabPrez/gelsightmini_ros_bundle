@@ -43,7 +43,7 @@ class Gsmini_to_pc:
         self.SAVE_VIDEO_FLAG = False
         self.GPU = True
         self.MASK_MARKERS_FLAG = False
-        self.SHOW_3D_NOW = False
+        self.SHOW_3D_NOW = True
         self.IS_SIMULATED = is_simulated
         self.background_settled = False
         rospy.loginfo("name of the finger: " + finger_name)
@@ -157,6 +157,7 @@ class Gsmini_to_pc:
         header.stamp = rospy.Time.now()
         header.frame_id = 'frame_'+ self.finger_name
         self.points[:, 2] = np.ndarray.flatten(dm_ros)
+        self.points[:, 1] = 0.015153 - self.points[:, 1]
         self.gelpcd.points = open3d.utility.Vector3dVector(self.points)
         gelpcdros = pcl2.create_cloud_xyz32(header, np.asarray(self.gelpcd.points))
         # rospy.loginfo("the number of points of the pointclsoud is: " + str(len(gelpcdros.data)))
@@ -172,8 +173,10 @@ class Gsmini_to_pc:
         header.stamp = rospy.Time.now()
         header.frame_id = 'frame_'+ self.finger_name
         self.points[:, 2] = np.ndarray.flatten(dm_ros)
+    
         self.gelpcd.points = open3d.utility.Vector3dVector(self.points)
         gelpcdros = pcl2.create_cloud_xyz32(header, np.asarray(self.gelpcd.points))
+        
         self.gelpcd_pub.publish(gelpcdros)
         
 
