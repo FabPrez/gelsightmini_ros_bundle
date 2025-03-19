@@ -7,7 +7,7 @@
     <arg name="rviz" default="true"/>
     <arg name="output" default="screen"/>
     <arg name="finger_name" default="first_finger"/>
-    <arg name="id_sensor" default="GelSight Mini R0B 2D2X-8MHY"/>
+    <arg name="id_sensor" default="GelSight Mini R0B 2D54-PYNT"/> 
     <arg name="publish_sensor_tf" default="true"/>
 
     <arg name="x" default="0" />

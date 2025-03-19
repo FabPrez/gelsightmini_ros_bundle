@@ -42,7 +42,11 @@ class Gsmini_to_pc:
         # Set flags
         self.SAVE_VIDEO_FLAG = False
         self.GPU = True
-        self.MASK_MARKERS_FLAG = False
+        if (id_sensor == "GelSight Mini R0B 2D2X-8MHY"):
+            self.MASK_MARKERS_FLAG = True
+        else:
+            self.MASK_MARKERS_FLAG = False
+        rospy.loginfo("MASK_MARKERS_FLAG: " + str(self.MASK_MARKERS_FLAG))
         self.SHOW_3D_NOW = True
         self.IS_SIMULATED = is_simulated
         self.background_settled = False
